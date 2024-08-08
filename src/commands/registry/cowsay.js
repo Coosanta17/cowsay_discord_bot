@@ -1,61 +1,51 @@
-import { exec } from "child_process";
 import { SlashCommandBuilder } from "discord.js";
 
-const choices =  [
-    "apt", "bud-frogs", "bunny", "calvin", "cheese", "cock", "cow", "cower", "daemon",
-    "default", "dragon", "dragon-and-cow", "duck", "elephant", "elephant-in-snake",
-    "eyes", "flaming-sheep", "fox", "ghostbusters", "gnu", "hellokitty", "kangaroo",
-    "kiss", "koala", "kosh", "luke-koala", "mech-and-cow", "milk", "moofasa", "moose",
-    "pony", "pony-smaller", "ren", "sheep", "skeleton", "snowman", "stegosaurus",
-    "stimpy", "suse", "three-eyes", "turkey", "turtle", "tux", "unipony", 
-    "unipony-smaller", "vader", "vader-koala", "www"
-];
+import { autocompleteCowType, runCommandWithOutput } from "../utils.js";
 
 export default {
     data: new SlashCommandBuilder()
-        .setName("cowsay")
+        .setName('cowsay')
         .setDescription("Shows the available commands.")
+
         .addStringOption(option =>
-            option.setName('content')
-                .setDescription('What the cow will say.')
+            option
+                .setName('content')
+                .setDescription("What the cow will say.")
                 .setRequired(true))
+
         .addStringOption(option =>
-            option.setName('cow_type')
-                .setDescription('The type of cow to use. (use `/cowlist` to see all options)')
+            option
+                .setName('cow_type')
+                .setDescription("The type of cow to use. (use `/cowlist` to see all options)")
                 .setRequired(false)
-                .setAutocomplete(true)
-        ),
+                .setAutocomplete(true)),
+
     async autocomplete(interaction) {
-        const focusedValue = interaction.options.getFocused();
-        const filtered = choices.filter(choice => choice.startsWith(focusedValue)).slice(0, 25);
         await interaction.respond(
-            filtered.map(choice => ({ name: choice, value: choice })),
+            autocompleteCowType(interaction),
         );
     },
     async execute(interaction) {
+
         const content = interaction.options.getString('content');
         const cowType = interaction.options.getString('cow_type') || "default";
 
         // Command to execute cowsay
-        const command = (cowType === "default" || cowType === "cow") ? `cowsay -f ${cowType} "${content}"` : `cowsay "${content}"`;
+        const command = (cowType === "default" || cowType === "cow") ? `cowsay "${content}"` : `cowsay -f ${cowType} "${content}"`;
+        
+        const cowsayResult = await runCommandWithOutput(command);
 
-        exec(command, (error, stdout, stderr) => {
+        if (cowsayResult === 'error') {
 
-            console.debug(`executing cowsay command: ${command}`);
+            interaction.reply({ content: 'There was an error executing the cowsay command from the bot.', ephemeral: true });
 
-            if (error) {
-                console.error(`Error: ${error.message}`);
-                interaction.reply({ content: 'There was an error executing the cowsay command from the bot.', ephemeral: true });
-                return;
-            }
-            if (stderr) {
-                console.error(`Stderr: ${stderr}`);
-                interaction.reply({ content: 'There was an error with the cowsay command on the server.', ephemeral: true });
-                return;
-            }
+        } else if (cowsayResult === 'stderr') {
 
-            // Send the cowsay output to Discord
-            interaction.reply(`\`\`\`\n${stdout}\n\`\`\``);
-        });
+            interaction.reply({ content: 'There was an error with the cowsay command on the server.', ephemeral: true });
+
+        } else { // Send the cowsay output to Discord
+
+            interaction.reply(`\`\`\`\n${cowsayResult}\n\`\`\``);
+        }
     },
 };
