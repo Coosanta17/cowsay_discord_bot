@@ -12,31 +12,43 @@ client.on("ready", () => {
     console.log(`Logged in as ${client.user.tag}!`);
 });
 client.on(Events.InteractionCreate, async (interaction) => {
-    if (!interaction.isChatInputCommand()) {
-        return;
-    }
+	const command = interaction.client.commands.get(interaction.commandName);
 
-    const command = interaction.client.commands.get(interaction.commandName);
+	if (interaction.isAutocomplete()) {
+		if (!command) {
+			console.error(`No command matching ${interaction.commandName} was found.`);
+			return;
+		}
 
-    if (!command) {
-		console.error(`No command matching ${interaction.commandName} was found.`);
+		try {
+			await command.autocomplete(interaction);
+		} catch (error) {
+			console.error(error);
+		}
 		return;
 	}
 
-	try {
+    if (interaction.isChatInputCommand()) {   
+        if (!command) {
+		    console.error(`No command matching ${interaction.commandName} was found.`);
+		    return;
+	    }
 
-		await command.execute(interaction);
+		try {
+			await command.execute(interaction);
+		} catch (error) {
 
-	} catch (error) {
+			console.error(error);
 
-		console.error(error);
-
-		if (interaction.replied || interaction.deferred) {
-			await interaction.followUp({ content: "There was an error while executing this command!", ephemeral: true });
-		} else {
-			await interaction.reply({ content: "There was an error while executing this command!", ephemeral: true });
+			if (interaction.replied || interaction.deferred) {
+				await interaction.followUp({ content: "There was an error while executing this command!", ephemeral: true });
+			} else {
+				await interaction.reply({ content: "There was an error while executing this command!", ephemeral: true });
+			}
 		}
-	}
+
+    	return;
+    }
 });
 
 client.login(process.env.TOKEN);
