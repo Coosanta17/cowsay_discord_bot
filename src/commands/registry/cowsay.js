@@ -32,13 +32,6 @@ export default {
             filtered.map(choice => ({ name: choice, value: choice })),
         );
     },
-    async autocomplete(interaction) {
-        const focusedValue = interaction.options.getFocused();
-        const filtered = choices.filter(choice => choice.startsWith(focusedValue)).slice(0, 25);
-        await interaction.respond(
-            filtered.map(choice => ({ name: choice, value: choice })),
-        );
-    },
     async execute(interaction) {
         const content = interaction.options.getString('content');
         const cowType = interaction.options.getString('cow_type') || "default";
