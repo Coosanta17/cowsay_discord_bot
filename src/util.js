@@ -1,6 +1,7 @@
 // Some JavaScript boilerplate (c) Coosanta
 
 import fs from "fs";
+import { exec } from "child_process";
 
 
 // Time libraries:
@@ -142,4 +143,23 @@ export function addCharacterAtEndOfStringIfMissing(str, char) {
         return str;
     }
     return str + char;
+}
+
+export function runCommandWithOutput(command) {
+    console.debug(`Executing console command: ${command}`);
+
+    return new Promise((resolve, reject) => {
+        exec(command, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error: ${error.message}`);
+                reject({ content: null, status: 'error' });
+            } else if (stderr) {
+                console.error(`Stderr: ${stderr}`);
+                reject({ content: null, status: 'stderr' });
+            } else {
+                // return output
+                resolve({ content: stdout.trim(), status: 'success' });
+            }
+        });
+    });
 }

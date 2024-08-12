@@ -1,6 +1,7 @@
 import { SlashCommandBuilder } from "discord.js";
 
-import { autocompleteCowType, runCommandWithOutput } from "../utils.js";
+import { autocompleteCowType } from "../command_utils.js";
+import { runConsoleCommandReturnForInteraction } from "../command_utils.js";
 
 export default {
     data: new SlashCommandBuilder()
@@ -33,19 +34,7 @@ export default {
         // Command to execute cowsay
         const command = (cowType === "default" || cowType === "cow") ? `cowsay "${content}"` : `cowsay -f ${cowType} "${content}"`;
         
-        const cowsayResult = await runCommandWithOutput(command);
-
-        if (cowsayResult === 'error') {
-
-            interaction.reply({ content: 'There was an error executing the cowsay command from the bot.', ephemeral: true });
-
-        } else if (cowsayResult === 'stderr') {
-
-            interaction.reply({ content: 'There was an error with the cowsay command on the server.', ephemeral: true });
-
-        } else { // Send the cowsay output to Discord
-
-            interaction.reply(`\`\`\`\n${cowsayResult}\n\`\`\``);
-        }
+        const replyMessage = await runConsoleCommandReturnForInteraction(command);
+        await interaction.reply(replyMessage);
     },
 };

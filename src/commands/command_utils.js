@@ -1,4 +1,4 @@
-import { exec } from "child_process";
+import { runCommandWithOutput } from "../util.js";
 
 const choices =  [
     "apt", "bud-frogs", "bunny", "calvin", "cheese", "cock", "cow", "cower", "daemon",
@@ -16,21 +16,16 @@ export function autocompleteCowType(interaction) {
     return filtered.map(choice => ({ name: choice, value: choice }));
 }
 
-export async function runCommandWithOutput(command) {
-    exec(command, (error, stdout, stderr) => {
+export async function runConsoleCommandReturnForInteraction(command){
 
-        console.debug(`executing console command: ${command}`);
-
-        if (error) {
-            console.error(`Error: ${error.message}`);
-            return 'error';
-        }
-        if (stderr) {
-            console.error(`Stderr: ${stderr}`);
-            return 'stderr';
-        }
-
-        // return output
-        return stdout;
-    });
+    const result = await runCommandWithOutput(command);
+    
+    if (result.status === 'error') {
+        return { content: 'There was an error executing the command.', ephemeral: true };
+    } else if (result.status === 'stderr') {
+        return { content: 'There was an error with the command on the server.', ephemeral: true };
+    } else {
+        return { content: `\`\`\`\n${result.content}\`\`\``, ephemeral: false };
+    }
 }
+
