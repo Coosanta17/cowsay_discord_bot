@@ -25,7 +25,7 @@ export async function runConsoleCommandReturnForInteraction(command){
     } else if (result.status === 'stderr') {
         return { content: 'There was an error with the command on the server.', ephemeral: true };
     } else {
-        return { content: `\`\`\`\n ${result.content}\`\`\``, ephemeral: false };
+        return { content: `\`\`\`\n ${result.content}\n\`\`\``, ephemeral: false }; // There is a blank space before the content and a new line after the content because of the unspoken universal laws of discord code block formatting and console output that annoy me greatly.
     }
 }
 
