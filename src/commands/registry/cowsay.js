@@ -12,7 +12,8 @@ export default {
             option
                 .setName('content')
                 .setDescription("What the cow will say.")
-                .setRequired(true))
+                .setRequired(true)
+                .setMaxLength(1000))
 
         .addStringOption(option =>
             option
